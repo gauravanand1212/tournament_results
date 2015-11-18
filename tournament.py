@@ -1,11 +1,12 @@
 #!/usr/bin/env python
-# 
+#
 # tournament.py -- implementation of a Swiss-system tournament
 #
 
 import psycopg2
 
 
+# Function to connect to the database
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
     return psycopg2.connect("dbname=tournament")
@@ -16,16 +17,17 @@ def deleteMatches():
     conn = connect()
     c = conn.cursor()
     c.execute("delete from matches;;")
-    conn.commit() 
+    conn.commit()
     print("All matches deleted")
+
 
 def deletePlayers():
     """Remove all the player records from the database."""
     conn = connect()
     c = conn.cursor()
     c.execute("delete from players;")
-    conn.commit()  
-    print("All players deleted")   
+    conn.commit()
+    print("All players deleted")
 
 
 def countPlayers():
@@ -35,30 +37,32 @@ def countPlayers():
     c.execute("select count(id) from players;")
     count = c.fetchone()
     print(count[0])
-    conn.commit() 
+    conn.commit()
     conn.close()
     return count[0]
 
+
 def registerPlayer(name):
     """Adds a player to the tournament database.
-  
+
     The database assigns a unique serial id number for the player.  (This
     should be handled by your SQL database schema, not in your Python code.)
-  
+
     Args:
       name: the player's full name (need not be unique).
     """
     conn = connect()
     c = conn.cursor()
-    c.execute("insert into players values (default,%s)",(name,))
-    conn.commit() 
+    c.execute("insert into players values (default,%s)", (name,))
+    conn.commit()
     conn.close()
+
 
 def playerStandings():
     """Returns a list of the players and their win records, sorted by wins.
 
-    The first entry in the list should be the player in first place, or a player
-    tied for first place if there is currently a tie.
+    The first entry in the list should be the player in first place,
+    or a player tied for first place if there is currently a tie.
 
     Returns:
       A list of tuples, each of which contains (id, name, wins, matches):
@@ -69,13 +73,17 @@ def playerStandings():
     """
     conn = connect()
     c = conn.cursor()
-    c.execute("select players.id as id,players.name as name,count(win.id) as wins, count(win.id)+count(loss.id) as matches \
-               from players left join matches as win on players.id = win.winner_id \
-               left join matches as loss on players.id = loss.loser_id group by players.id,players.name order by wins desc;")
+    c.execute("select players.id as id,players.name as name, \
+               count(win.id) as wins, count(win.id)+count(loss.id) as matches \
+               from players \
+               left join matches as win on players.id = win.winner_id \
+               left join matches as loss on players.id = loss.loser_id \
+               group by players.id,players.name order by wins desc;")
     table = c.fetchall()
     conn.commit()
     conn.close()
     return table
+
 
 def reportMatch(winner, loser):
     """Records the outcome of a single match between two players.
@@ -86,18 +94,19 @@ def reportMatch(winner, loser):
     """
     conn = connect()
     c = conn.cursor()
-    c.execute("insert into matches values (default,%s,%s);",(winner,loser,))
+    c.execute("insert into matches values (default,%s,%s);", (winner, loser,))
     conn.commit()
     conn.close()
- 
+
+
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
-  
+
     Assuming that there are an even number of players registered, each player
     appears exactly once in the pairings.  Each player is paired with another
     player with an equal or nearly-equal win record, that is, a player adjacent
     to him or her in the standings.
-  
+
     Returns:
       A list of tuples, each of which contains (id1, name1, id2, name2)
         id1: the first player's unique id
@@ -107,11 +116,10 @@ def swissPairings():
     """
     table = playerStandings()
     result = []
-    for index,row in enumerate(table):
-        if(index%2==0):
-            result.append([row[0],row[1],'',''])   
+    for index, row in enumerate(table):
+        if(index % 2 == 0):
+            result.append([row[0], row[1], '', ''])
         else:
             result[(index-1)/2][2] = row[0]
             result[(index-1)/2][3] = row[1]
-          
     return result
