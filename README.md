@@ -17,9 +17,8 @@ How to run the application:
 - You also need a virtual machine (Vagrant) to run the database and
 the commands (please see online documentation for vagrant to run Vagrant VM)
 - Once you have logged into your vagrant VM (vagrant file can be obtained
-from Udacity:), run psql commands to create a database and import commands
-from tournament.sql to create tables needed for the application from within
-the database
+from Udacity:), run psql and import commands from tournament.sql 
+to create the database, tables and views needed for the application
 - Run the file tourament_test.py to view result of each test operation
 
 
